@@ -112,9 +112,12 @@ const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
   attribution:'Ortofoto PNOA © Instituto Geográfico Nacional', maxZoom:21});
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom:19, attribution:'© OpenStreetMap'});
-osm.addTo(map);      // fondo continuo, rellena los huecos de la ortofoto
-pnoa.addTo(map);
-L.control.layers(null, {'Ortofoto PNOA (IGN)':pnoa}, {position:'topright', collapsed:true}).addTo(map);
+const esri = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:19, attribution:'Ortofoto © Esri'});
+esri.addTo(map);     // cobertura continua, sin huecos en blanco
+L.control.layers({'Ortofoto':esri, 'Ortofoto PNOA (IGN)':pnoa, 'Callejero':osm},
+                 null, {position:'topright', collapsed:true}).addTo(map);
 L.control.scale({imperial:false}).addTo(map);
 
 function estilo(f){
