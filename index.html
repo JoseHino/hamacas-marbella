@@ -112,8 +112,9 @@ const pnoa = L.tileLayer.wms('https://www.ign.es/wms-inspire/pnoa-ma', {
   attribution:'Ortofoto PNOA © Instituto Geográfico Nacional', maxZoom:21});
 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom:19, attribution:'© OpenStreetMap'});
+osm.addTo(map);      // fondo continuo, rellena los huecos de la ortofoto
 pnoa.addTo(map);
-L.control.layers({'Ortofoto PNOA (IGN)':pnoa,'Callejero OSM':osm}, null, {position:'topright'}).addTo(map);
+L.control.layers(null, {'Ortofoto PNOA (IGN)':pnoa}, {position:'topright', collapsed:true}).addTo(map);
 L.control.scale({imperial:false}).addTo(map);
 
 function estilo(f){
