@@ -73,7 +73,7 @@
   body.movil .it .cod{font-size:14px}
   body.movil .it .sub{font-size:12px}
   body.movil footer{display:none}
-  body.movil .leyenda{font-size:11px;line-height:1.7;padding:7px 9px}
+  body.movil .leyenda{display:none}
   body.movil .leaflet-popup-content{min-width:0;width:auto !important;margin:11px 12px;font-size:13px}
   body.movil .leaflet-popup{max-width:86vw}
 </style>
@@ -125,7 +125,6 @@ const capa = L.geoJSON(DATOS, {style:estilo, onEachFeature:(f,l)=>{
   l.bindPopup(ficha(f.properties), {maxWidth:330});
   l.on('click', ()=>marca(f.properties.codigo));
 }}).addTo(map);
-map.fitBounds(capa.getBounds(), {padding:[25,25]});
 
 function fila(k,v){ return v==null||v===''?'':`<tr><td>${k}</td><td>${v}</td></tr>`; }
 function ficha(p){
@@ -225,10 +224,12 @@ const side = document.getElementById('side');
 const tira = document.getElementById('tira');
 function modo(){
   const m = window.innerWidth <= 820;
+  const cambio = document.body.classList.contains('movil') !== m;
   document.body.classList.toggle('movil', m);
   if(m && !side.dataset.init){ side.classList.add('plegado'); side.dataset.init = '1'; }
-  setTimeout(()=>map.invalidateSize(), 230);
+  setTimeout(()=>{ map.invalidateSize(); if(cambio) encuadra(); }, 240);
 }
+function encuadra(){ map.fitBounds(capa.getBounds(), {padding:[22,22]}); }
 function plegar(v){
   side.classList.toggle('plegado', v);
   document.getElementById('tiraIc').textContent = v ? '▲' : '▼';
@@ -237,6 +238,9 @@ function plegar(v){
 tira.addEventListener('click', ()=>plegar(!side.classList.contains('plegado')));
 window.addEventListener('resize', modo);
 modo();
+/* encuadre inicial una vez fijado el tamano real del contenedor */
+requestAnimationFrame(()=>{ map.invalidateSize(); encuadra();
+  setTimeout(()=>{ map.invalidateSize(); encuadra(); }, 320); });
 /* al elegir una parcela en el movil, se pliega para dejar ver el mapa */
 lista.addEventListener('click', ()=>{ if(document.body.classList.contains('movil')) plegar(true); });
 
