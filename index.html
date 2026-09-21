@@ -52,10 +52,30 @@
     font-size:11.5px;line-height:1.9;color:var(--tx)}
   .leyenda i{width:13px;height:13px;display:inline-block;margin-right:7px;vertical-align:-2px;
     border-radius:2px;border:1.5px solid}
-  @media (max-width:820px){
-    #app{flex-direction:column}
-    #side{width:100%;flex:0 0 auto;max-height:47%;border-right:0;border-bottom:1px solid var(--line)}
-  }
+  #tira{display:none}
+  /* --- telefono: mapa a pantalla completa con panel inferior desplegable --- */
+  body.movil #app{display:block;position:relative}
+  body.movil #map{position:absolute;inset:0;width:100%;height:100%}
+  body.movil #side{position:absolute;left:0;right:0;bottom:0;top:auto;width:auto;
+    max-height:72%;border-right:0;border-top:1px solid var(--line);
+    border-radius:16px 16px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.45);
+    z-index:1000;transition:transform .22s ease}
+  body.movil #side.plegado{transform:translateY(calc(100% - 128px))}
+  body.movil header{display:none}
+  body.movil #tira{display:flex;align-items:center;gap:10px;padding:10px 16px 2px;cursor:pointer}
+  body.movil #tira .asa{width:38px;height:4px;border-radius:2px;background:#3a4c61;margin:0 auto}
+  body.movil #tira b{font-size:13px}
+  body.movil .ctl{padding:10px 16px}
+  body.movil input[type=search],body.movil select{padding:11px 10px;font-size:15px}
+  body.movil label.chk{font-size:13.5px;padding:4px 0}
+  body.movil label.chk input{width:18px;height:18px}
+  body.movil .it{padding:13px 16px}
+  body.movil .it .cod{font-size:14px}
+  body.movil .it .sub{font-size:12px}
+  body.movil footer{display:none}
+  body.movil .leyenda{font-size:11px;line-height:1.7;padding:7px 9px}
+  body.movil .leaflet-popup-content{min-width:0;width:auto !important;margin:11px 12px;font-size:13px}
+  body.movil .leaflet-popup{max-width:86vw}
 </style>
 </head>
 <body>
@@ -65,6 +85,9 @@
       <h1>Parcelas de hamacas · T.M. de Marbella</h1>
       <p>135 parcelas extraídas de los planos oficiales georreferenciados del expediente. Pulsa una para situarla.</p>
     </header>
+    <div id="tira"><div style="flex:1"><div class="asa"></div>
+      <b id="tiraTx" style="display:block;margin-top:7px">135 parcelas</b></div>
+      <span id="tiraIc" style="font-size:17px;color:var(--tx2)">▲</span></div>
     <div class="ctl">
       <input type="search" id="q" placeholder="Buscar código, playa o expediente…" autocomplete="off">
       <div class="row">
@@ -172,6 +195,9 @@ function pinta(){
   document.getElementById('cuenta').innerHTML =
     `<b>${v.length}</b> parcelas · <b>${n100}</b> del expediente PAT 255/25 · ` +
     `<b>${v.reduce((a,f)=>a+f.properties.superficie,0).toLocaleString('es-ES')}</b> m² autorizados`;
+  const tt = document.getElementById('tiraTx');
+  if(tt) tt.textContent = v.length + (v.length===1?' parcela':' parcelas') +
+      (n100 ? ' · ' + n100 + ' del PAT 255/25' : '');
   lista.innerHTML = '';
   v.sort((a,b)=> a.properties.playa.localeCompare(b.properties.playa) ||
                  a.properties.superficie-b.properties.superficie)
@@ -193,6 +219,26 @@ function pinta(){
 }
 [q,fplaya,fexp,f100].forEach(e=>e.addEventListener('input',pinta));
 pinta();
+
+/* --- modo telefono: panel inferior desplegable --- */
+const side = document.getElementById('side');
+const tira = document.getElementById('tira');
+function modo(){
+  const m = window.innerWidth <= 820;
+  document.body.classList.toggle('movil', m);
+  if(m && !side.dataset.init){ side.classList.add('plegado'); side.dataset.init = '1'; }
+  setTimeout(()=>map.invalidateSize(), 230);
+}
+function plegar(v){
+  side.classList.toggle('plegado', v);
+  document.getElementById('tiraIc').textContent = v ? '▲' : '▼';
+  setTimeout(()=>map.invalidateSize(), 230);
+}
+tira.addEventListener('click', ()=>plegar(!side.classList.contains('plegado')));
+window.addEventListener('resize', modo);
+modo();
+/* al elegir una parcela en el movil, se pliega para dejar ver el mapa */
+lista.addEventListener('click', ()=>{ if(document.body.classList.contains('movil')) plegar(true); });
 
 L.control.attribution({prefix:false});
 const leg = L.control({position:'bottomright'});
