@@ -123,7 +123,7 @@ function estilo(f){
           fillColor: l ? '#f44c3a' : '#37a0b4', fillOpacity: l ? .55 : .35};
 }
 const capa = L.geoJSON(DATOS, {style:estilo, onEachFeature:(f,l)=>{
-  l.bindPopup(ficha(f.properties), {maxWidth:330});
+  l.bindPopup(ficha(f.properties), {maxWidth:330, autoPan:true, autoPanPadding:[14,14]});
   l.on('click', ()=>marca(f.properties.codigo));
 }}).addTo(map);
 
@@ -228,9 +228,16 @@ function modo(){
   const cambio = document.body.classList.contains('movil') !== m;
   document.body.classList.toggle('movil', m);
   if(m && !side.dataset.init){ side.classList.add('plegado'); side.dataset.init = '1'; }
+  ajustaFichas();
   setTimeout(()=>{ map.invalidateSize(); if(cambio) encuadra(); }, 240);
 }
 function encuadra(){ map.fitBounds(capa.getBounds(), {padding:[22,22]}); }
+/* la ficha nunca debe desbordar la pantalla: se limita y se hace desplazable */
+function ajustaFichas(){
+  const h = Math.max(190, Math.round(window.innerHeight * 0.46));
+  capa.eachLayer(l=>{ const p = l.getPopup(); if(p){ p.options.maxHeight = h;
+    if(l.isPopupOpen()) p.update(); } });
+}
 function plegar(v){
   side.classList.toggle('plegado', v);
   document.getElementById('tiraIc').textContent = v ? '▲' : '▼';
